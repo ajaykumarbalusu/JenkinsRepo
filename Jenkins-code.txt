@@ -1,0 +1,24 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage ('Git clone') {
+            steps {
+                echo 'Cloning the Git repo'
+                git branch: 'main', url: 'https://github.com/ajaykumarbalusu/JenkinsRepo.git'
+            }
+        }
+        stage ('build the script') {
+            steps {
+                echo 'Build the code in maven'
+                sh 'mvn clean install'
+            }
+        }
+        stage ('Deploy the build') {
+            steps {
+                echo 'Deploy the build in Tomcat'
+                deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: 'Tomcat', path: '', url: 'http://3.23.60.2:8080/')], contextPath: 'Instagram', onFailure: false, war: '**/*.war'
+            }
+        }
+    }
+}
