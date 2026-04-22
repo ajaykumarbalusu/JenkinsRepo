@@ -1,0 +1,281 @@
+Create instances 
+
+CICD Pipeline MAVEN JENKINS and TOMCAT 
+
+Connect the instance using SSH 
+ssh -i "jenkins-fc-training.pem" ec2-user@ec2-16-112-64-77.ap-south-2.compute.amazonaws.com 
+
+Jenkins Installation 
+
+What is Jenkins? 
+Jenkins is an open-source automation server written in Java. It facilitates continuous integration and continuous 
+deployment (CI/CD) by automating the building, testing, and deployment of software projects. Jenkins is highly 
+extensible, with a vast ecosystem of plugins that allow it to integrate with various tools and services, making it a 
+popular choice for DevOps teams. 
+
+Key Features 
+
+ Continuous Integration/Continuous Deployment (CI/CD): Automates the process of integrating code 
+changes, running tests, and deploying applications. 
+ Extensive Plugin Ecosystem: Over 1,800 plugins to integrate with tools like Git, Docker, Kubernetes, 
+AWS, and more. 
+ Pipeline Support: Define build processes as code using Jenkins Pipeline, enabling complex workflows. 
+ Distributed Builds: Supports master-agent architecture to distribute workloads across multiple 
+machines. 
+ Customizable: Highly configurable to suit various project needs, from simple builds to complex 
+deployment pipelines. 
+ Community Support: Backed by a large community, providing extensive documentation and resources. 
+
+Pre-Requisites 
+
+To install Jenkins on a Debian-based system (e.g., Ubuntu), ensure the following requirements are met: 
+
+ Operating System: Debian-based Linux distribution (e.g., Ubuntu 20.04 or later). 
+ Java (JDK): Jenkins requires Java to run. OpenJDK 17 is recommended. 
+ Hardware: At least 1 GB of RAM and sufficient disk space for builds and artifacts. 
+ Network: Internet access for downloading Jenkins and plugins; port 8080 open for accessing the Jenkins 
+web interface. 
+ User Permissions: Administrative (sudo) access to install packages. 
+
+Installation Steps 
+
+mount -o remount,size=4G /tmp 
+sudo yum update –y 
+sudo wget -O /etc/yum.repos.d/jenkins.repo \ 
+https://pkg.jenkins.io/rpm-stable/jenkins.repo   
+sudo rpm --import https://pkg.jenkins.io/rpm-stable/jenkins.io-2026.key 
+sudo yum upgrade -y 
+sudo yum install java-21-amazon-corretto -y 
+sudo yum install jenkins -y 
+sudo systemctl enable jenkins 
+sudo systemctl start jenkins 
+sudo systemctl status jenkins 
+sudo yum install git maven –y 
+Access the jenkins through web browser using Ipaddress with port 8080 
+Get the password using cat command 
+cat /var/lib/jenkins/secrets/initialAdminPassword 
+You can view the below snap 
+Click on install suggested plugins  it will install the dependencies 
+After install you can see the below snap to provide user details 
+Provide your details and click on save and continue  click on finish button to view jekins GUI 
+Now connect to tomcat server using SSH 
+ssh -i "jenkins-fc-training.pem" ec2-user@ec2-98-130-124-2.ap-south-2.compute.amazonaws.com 
+Once connected follow the below official document to download apache package 
+Work on /opt directory  
+cd /opt 
+install the java package 
+sudo yum install java-21-amazon-corretto -y 
+wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.117/bin/apache-tomcat-9.0.117.tar.gz 
+Once downloaded extract the package 
+tar –xvf apache-tomcat-9.0.117.tar.gz 
+Once extracted the packages go to the apache directory 
+cd apache-tomcat-9.0.117 
+go to the below directory, you can view the context.xml 
+cd /opt/apache-tomcat-9.0.117/webapps/manager/META-INF 
+vi context.xml 
+inside context you need to remove lines in between the below 
+<Context antiResourceLocking="false" privileged="true" > 
+Remove what ever the lines you have 
+</Context> 
+:wq (save and exit) 
+Now go to conf directory 
+[root@tomcat META-INF]# cd ../../ 
+[root@tomcat webapps]# cd ../conf/ 
+[root@tomcat conf]# ll 
+total 228 -rw-------. 1 root root  12953 Mar 30 18:21 catalina.policy -rw-------. 1 root root   7654 Mar 30 18:21 catalina.properties -rw-------. 1 root root   1400 Mar 30 18:21 context.xml -rw-------. 1 root root   1149 Mar 30 18:21 jaspic-providers.xml -rw-------. 1 root root   2313 Mar 30 18:21 jaspic-providers.xsd -rw-------. 1 root root   4003 Mar 30 18:21 logging.properties -rw-------. 1 root root   8022 Mar 30 18:21 server.xml -rw-------. 1 root root   2756 Mar 30 18:21 tomcat-users.xml -rw-------. 1 root root   2558 Mar 30 18:21 tomcat-users.xsd -rw-------. 1 root root 174047 Mar 30 18:21 web.xml 
+[root@tomcat conf]# vi server.xml 
+Change the connector port 8080 to 8081 ( or anyother port like 8082 8083 or 8090 etc ) 
+Now edit the tomcat-users.xml using vi editor 
+vi tomcat-users.xml 
+esc 100dd to delete all the content 
+
+copy and paste the below 
+<?xml version="1.0" encoding="utf-8"?> 
+<tomcat-users> 
+<role rolename="manager-gui"/> 
+<user username="tomcat" password="tomcat" roles="manager-gui, manager-script, manager-status"/> 
+</tomcat-users> 
+Now come to bin directory 
+cd ../bin/ 
+start the tomcat server using the command below 
+[root@tomcat bin]# ./startup.sh 
+Using CATALINA_BASE:   /opt/apache-tomcat-9.0.117 
+Using CATALINA_HOME:   /opt/apache-tomcat-9.0.117 
+Using CATALINA_TMPDIR: /opt/apache-tomcat-9.0.117/temp 
+Using JRE_HOME:        /usr 
+Using CLASSPATH:       /opt/apache-tomcat-9.0.117/bin/bootstrap.jar:/opt/apache-tomcat-9.0.117/bin/tomcat
+juli.jar 
+Using CATALINA_OPTS: 
+Tomcat started. 
+Access through web browser using ipaddress with port 8081 
+Click on manager app it will prompt username and password 
+Insert your username and password details 
+Once logged in you can view the below GUI 
+Now create a new job and give name as per your project and select the pipeline which you are working 
+Test with the sample pipeline like Hello Word using the script 
+pipeline { 
+agent any 
+stages { 
+stage('Hello') { 
+steps { 
+echo 'Hello World' 
+} 
+} 
+} 
+} 
+Click on build now and check the console output it shows success 
+Started by user naresh 
+[Pipeline] Start of Pipeline 
+[Pipeline] node 
+Running on Jenkins in /var/lib/jenkins/workspace/Automation 
+[Pipeline] { 
+[Pipeline] stage 
+[Pipeline] { (Hello) 
+[Pipeline] echo 
+Hello World 
+[Pipeline] } 
+[Pipeline] // stage 
+[Pipeline] } 
+[Pipeline] // node 
+[Pipeline] End of Pipeline 
+Finished: SUCCESS 
+Now we need to create automate pipeline to deploy the application on tomcat server 
+Create a New job with the name of Pipeline-Automation 
+Create a script using pipeline syntax select the hello world 
+Remove the existing script and create new as per the below, change your github repo with your project 
+and user your credentials for tomcat 
+pipeline { 
+agent any 
+stages { 
+stage('checkout') { 
+steps { 
+echo 'git checkout stage' 
+git branch: 'main', url: 'https://github.com/devopstraininghub/mindcircuit17d.git' 
+} 
+} 
+stage('build') { 
+steps { 
+echo 'building with maven' 
+sh 'mvn clean install' 
+} 
+} 
+stage('deploy') { 
+steps { 
+echo 'deploying to tomcat' 
+deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: 'tomcat', path: '', 
+url: 'http://98.130.124.2:8081/')], contextPath: 'facebooapp', war: '**/*.war' 
+} 
+} 
+} 
+} 
+Apply and save or you can click on save button directly 
+Click on build now it will success 
+Click on green tick button to view console output 
+You can view complete stages of the pipeline  
+Started by user naresh 
+[Pipeline] Start of Pipeline 
+[Pipeline] node 
+Running on Jenkins in /var/lib/jenkins/workspace/Pipeline-Automation 
+[Pipeline] { 
+[Pipeline] stage 
+[Pipeline] { (checkout) 
+[Pipeline] echo 
+git checkout stage 
+[Pipeline] git 
+The recommended git tool is: NONE 
+No credentials specified 
+Cloning the remote Git repository 
+Cloning repository https://github.com/devopstraininghub/mindcircuit17d.git 
+ > git init /var/lib/jenkins/workspace/Pipeline-Automation # timeout=10 
+Fetching upstream changes from https://github.com/devopstraininghub/mindcircuit17d.git 
+ > git --version # timeout=10 
+ > git --version # 'git version 2.50.1' 
+ > git fetch --tags --force --progress -- https://github.com/devopstraininghub/mindcircuit17d.git 
++refs/heads/*:refs/remotes/origin/* # timeout=10 
+ > git config remote.origin.url https://github.com/devopstraininghub/mindcircuit17d.git # timeout=10 
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10 
+Avoid second fetch 
+ > git rev-parse refs/remotes/origin/main^{commit} # timeout=10 
+Checking out Revision 4da8aa9c1b6bb250a67eb4a0261f80d03179ea14 (refs/remotes/origin/main) 
+ > git config core.sparsecheckout # timeout=10 
+ > git checkout -f 4da8aa9c1b6bb250a67eb4a0261f80d03179ea14 # timeout=10 
+ > git branch -a -v --no-abbrev # timeout=10 
+ > git checkout -b main 4da8aa9c1b6bb250a67eb4a0261f80d03179ea14 # timeout=10 
+Commit message: "Add Jenkins pipeline for checkout, build, and deploy" 
+First time build. Skipping changelog. 
+[Pipeline] } 
+[Pipeline] // stage 
+[Pipeline] stage 
+[Pipeline] { (build) 
+[Pipeline] echo 
+building with maven 
+[Pipeline] sh 
++ mvn clean install 
+[INFO] Scanning for projects... 
+[INFO]  
+[INFO] ----------------------< com.example:facebookapp >----------------------- 
+[INFO] Building facebookapp 1.0.0 
+[INFO] --------------------------------[ war ]--------------------------------- 
+[INFO]  
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ facebookapp --- 
+[INFO]  
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ facebookapp --- 
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform 
+dependent! 
+[INFO] skip non existing resourceDirectory /var/lib/jenkins/workspace/Pipeline-Automation/src/main/resources 
+[INFO]  
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ facebookapp --- 
+[INFO] No sources to compile 
+[INFO]  
+[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ facebookapp --- 
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform 
+dependent! 
+[INFO] skip non existing resourceDirectory /var/lib/jenkins/workspace/Pipeline-Automation/src/test/resources 
+[INFO]  
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ facebookapp --- 
+[INFO] No sources to compile 
+[INFO]  
+[INFO] --- maven-surefire-plugin:2.12.4:test (default-test) @ facebookapp --- 
+[INFO] No tests to run. 
+[INFO]  
+[INFO] --- maven-war-plugin:3.3.2:war (default-war) @ facebookapp --- 
+[INFO] Packaging webapp 
+[INFO] Assembling webapp [facebookapp] in [/var/lib/jenkins/workspace/Pipeline
+Automation/target/facebookapp-1.0.0] 
+[INFO] Processing war project 
+[INFO] Copying webapp resources [/var/lib/jenkins/workspace/Pipeline-Automation/src/main/webapp] 
+[INFO] Building war: /var/lib/jenkins/workspace/Pipeline-Automation/target/facebookapp-1.0.0.war 
+[INFO]  
+[INFO] --- maven-install-plugin:2.4:install (default-install) @ facebookapp --- 
+[INFO] Installing /var/lib/jenkins/workspace/Pipeline-Automation/target/facebookapp-1.0.0.war to 
+/var/lib/jenkins/.m2/repository/com/example/facebookapp/1.0.0/facebookapp-1.0.0.war 
+[INFO] Installing /var/lib/jenkins/workspace/Pipeline-Automation/pom.xml to 
+/var/lib/jenkins/.m2/repository/com/example/facebookapp/1.0.0/facebookapp-1.0.0.pom 
+[INFO] ------------------------------------------------------------------------ 
+[INFO] BUILD SUCCESS 
+[INFO] ------------------------------------------------------------------------ 
+[INFO] Total time:  2.644 s 
+[INFO] Finished at: 2026-04-19T07:09:43Z 
+[INFO] ------------------------------------------------------------------------ 
+[Pipeline] } 
+[Pipeline] // stage 
+[Pipeline] stage 
+[Pipeline] { (deploy) 
+[Pipeline] echo 
+deploying to tomcat 
+[Pipeline] deploy 
+[DeployPublisher][INFO] Attempting to deploy 1 war file(s) 
+[DeployPublisher][INFO] Deploying /var/lib/jenkins/workspace/Pipeline-Automation/target/facebookapp
+1.0.0.war to container Tomcat 9.x Remote with context facebooapp 
+  Redeploying [/var/lib/jenkins/workspace/Pipeline-Automation/target/facebookapp-1.0.0.war] 
+  Undeploying [/var/lib/jenkins/workspace/Pipeline-Automation/target/facebookapp-1.0.0.war] 
+  Deploying [/var/lib/jenkins/workspace/Pipeline-Automation/target/facebookapp-1.0.0.war] 
+[Pipeline] } 
+[Pipeline] // stage 
+[Pipeline] } 
+[Pipeline] // node 
+[Pipeline] End of Pipeline 
+Finished: SUCCESS 
+Now go to the tomcat GUI and refresh the page to view your deployment package file 
+Open the facebook app on new tab you can see your application 
+Once you’r done, do not forget to stop or terminate instance to get any surprises for unused bill 
